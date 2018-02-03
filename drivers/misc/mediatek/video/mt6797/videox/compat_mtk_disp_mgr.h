@@ -55,6 +55,8 @@ typedef struct compat_disp_input_config_t {
 	compat_uint_t video_rotation;
 
 	compat_uint_t next_buff_idx;
+	compat_uint_t src_fence_fd;	/* fence to be waited before using this buffer. -1 if invalid */
+	compat_uptr_t src_fence_struct;	/* fence struct of src_fence_fd, used in kernel */
 
 	compat_uint_t src_color_key;
 	compat_uint_t frm_sequence;
@@ -72,13 +74,15 @@ typedef struct compat_disp_input_config_t {
 	u8 alpha;
 	u8 sur_aen;
 	u8 src_use_color_key;
+
 	u8 layer_id;
 	u8 layer_enable;
-
 	u8 src_direct_link;
 	u8 isTdshp;
+
 	u8 identity;
 	u8 connected_type;
+	u8 ext_sel_layer;
 } compat_disp_input_config;
 
 typedef struct compat_disp_output_config_t {
@@ -94,6 +98,8 @@ typedef struct compat_disp_output_config_t {
 	compat_uint_t security;
 	compat_uint_t buff_idx;
 	compat_uint_t interface_idx;
+	compat_uint_t src_fence_fd;	/* fence to be waited before using this buffer. -1 if invalid */
+	compat_uptr_t src_fence_struct;		/* fence struct of src_fence_fd, used in kernel */
 	compat_uint_t frm_sequence;
 } compat_disp_output_config;
 
@@ -101,7 +107,7 @@ typedef struct compat_disp_session_input_config_t {
 	compat_uint_t setter;
 	compat_uint_t session_id;
 	compat_uint_t config_layer_num;
-	compat_disp_input_config config[8];
+	compat_disp_input_config config[12];
 } compat_disp_session_input_config;
 
 typedef struct compat_disp_present_fence_info_t {
@@ -136,6 +142,7 @@ typedef struct compat_disp_caps_t {
 	compat_uint_t disp_feature;
 	compat_uint_t is_support_frame_cfg_ioctl;
 	compat_uint_t is_output_rotated;
+	compat_uint_t rsz_in_res_list[RSZ_RES_LIST_NUM][2];
 } compat_disp_caps_info;
 
 
@@ -164,7 +171,7 @@ struct compat_disp_frame_cfg_t {
 
 	/* input config */
 	compat_uint_t input_layer_num;
-	compat_disp_input_config input_cfg[8];
+	compat_disp_input_config input_cfg[12];
 	compat_uint_t overlap_layer_num;
 
 	/* constant layer */
@@ -178,6 +185,8 @@ struct compat_disp_frame_cfg_t {
 	/* trigger config */
 	compat_uint_t mode;
 	compat_uint_t present_fence_idx;
+	compat_uint_t prev_present_fence_fd;
+	compat_uptr_t prev_present_fence_struct;
 	compat_uint_t tigger_mode;
 	compat_uint_t user;
 };
@@ -194,6 +203,8 @@ typedef struct compat_disp_session_info_t {
 	compat_uint_t vsyncFPS;
 	compat_uint_t physicalWidth;
 	compat_uint_t physicalHeight;
+	compat_uint_t physicalWidthUm;	/* length: um, for more precise precision */
+	compat_uint_t physicalHeightUm;	/* length: um, for more precise precision */
 	compat_uint_t isConnected;
 	compat_uint_t isHDCPSupported;
 	compat_uint_t isOVLDisabled;
@@ -204,6 +215,23 @@ typedef struct compat_disp_session_info_t {
 	compat_uint_t updateFPS;
 	compat_uint_t is_updateFPS_stable;
 } compat_disp_session_info;
+
+typedef struct compat_layer_config_t {
+	compat_uint_t ovl_id;
+	compat_uint_t src_fmt;
+	compat_uint_t dst_offset_x, dst_offset_y;
+	compat_uint_t dst_width, dst_height;
+	int ext_sel_layer;
+} compat_layer_config;
+
+typedef struct compat_disp_layer_info_t {
+	compat_uptr_t input_config[2];
+	compat_int_t disp_mode[2];
+	compat_int_t layer_num[2];
+	compat_int_t gles_head[2];
+	compat_int_t gles_tail[2];
+	compat_int_t hrt_num;
+} compat_disp_layer_info;
 
 int _compat_ioctl_prepare_present_fence(struct file *file, unsigned long arg);
 int _compat_ioctl_trigger_session(struct file *file, unsigned long arg);
@@ -218,6 +246,7 @@ int _compat_ioctl_set_vsync(struct file *file, unsigned long arg);
 int _compat_ioctl_set_output_buffer(struct file *file, unsigned long arg);
 int _compat_ioctl_set_session_mode(struct file *file, unsigned long arg);
 int _compat_ioctl_frame_config(struct file *file, unsigned long arg);
+int _compat_ioctl_query_valid_layer(struct file *file, unsigned long arg);
 
 #define	COMPAT_DISP_IOCTL_CREATE_SESSION				DISP_IOW(201, compat_disp_session_config)
 #define	COMPAT_DISP_IOCTL_DESTROY_SESSION				DISP_IOW(202, compat_disp_session_config)
@@ -238,6 +267,7 @@ int _compat_ioctl_frame_config(struct file *file, unsigned long arg);
 #define COMPAT_DISP_IOCTL_GET_IS_DRIVER_SUSPEND			DISP_IOW(217, compat_uint_t)
 #define COMPAT_DISP_IOCTL_GET_DISPLAY_CAPS			DISP_IOW(218, compat_disp_caps_info)
 #define	COMPAT_DISP_IOCTL_FRAME_CONFIG				DISP_IOW(220, compat_disp_session_output_config)
+#define	COMPAT_DISP_IOCTL_QUERY_VALID_LAYER 			DISP_IOW(221, compat_disp_layer_info)
 
 #endif
 #endif /*_COMPAT_MTK_DISP_MGR_H_*/

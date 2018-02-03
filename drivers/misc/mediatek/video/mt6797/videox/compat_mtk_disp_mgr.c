@@ -14,12 +14,16 @@
 
 #include "compat_mtk_disp_mgr.h"
 
+#include <linux/slab.h>
+
 #include "disp_drv_log.h"
 #include "debug.h"
 #include "primary_display.h"
 #include "display_recorder.h"
 #include "mtkfb_fence.h"
 #include "disp_drv_platform.h"
+#include "mtk_hrt.h"
+#include <stddef.h>
 
 
 #ifdef CONFIG_COMPAT
@@ -158,6 +162,12 @@ static int compat_get_disp_output_config(compat_disp_output_config __user *data3
 	err |= get_user(u, &(data32->interface_idx));
 	err |= put_user(u, &(data->interface_idx));
 
+	err |= get_user(u, &(data32->src_fence_fd));
+	err |= put_user(u, &(data->src_fence_fd));
+
+	err |= get_user(p, (unsigned long *)&(data32->src_fence_struct));
+	err |= put_user(p, (unsigned long *)&(data->src_fence_struct));
+
 	err |= get_user(u, &(data32->frm_sequence));
 	err |= put_user(u, &(data->frm_sequence));
 
@@ -290,6 +300,12 @@ static int compat_get_disp_input_config(compat_disp_input_config __user *data32,
 	err |= get_user(u, &(data32->next_buff_idx));
 	err |= put_user(u, &(data->next_buff_idx));
 
+	err |= get_user(u, &(data32->src_fence_fd));
+	err |= put_user(u, &(data->src_fence_fd));
+
+	err |= get_user(p, (unsigned long *)&(data32->src_fence_struct));
+	err |= put_user(p, (unsigned long *)&(data->src_fence_struct));
+
 	err |= get_user(u, &(data32->src_color_key));
 	err |= put_user(u, &(data->src_color_key));
 
@@ -358,6 +374,9 @@ static int compat_get_disp_input_config(compat_disp_input_config __user *data32,
 
 	err |= get_user(c, &(data32->isTdshp));
 	err |= put_user(c, &(data->isTdshp));
+
+	err |= get_user(c, &(data32->ext_sel_layer));
+	err |= put_user(c, &(data->ext_sel_layer));
 
 	return err;
 }
@@ -603,6 +622,11 @@ static int compat_get_disp_session_info(compat_disp_session_info __user *data32,
 	err |= get_user(i, &(data32->physicalHeight));
 	err |= put_user(i, &(data->physicalHeight));
 
+	err |= get_user(u, &(data32->physicalWidthUm));
+	err |= put_user(u, &(data->physicalWidthUm));
+
+	err |= get_user(i, &(data32->physicalHeightUm));
+	err |= put_user(i, &(data->physicalHeightUm));
 
 	err |= get_user(i, &(data32->isConnected));
 	err |= put_user(i, &(data->isConnected));
@@ -663,6 +687,11 @@ static int compat_put_disp_session_info(compat_disp_session_info __user *data32,
 	err |= get_user(i, &(data->physicalHeight));
 	err |= put_user(i, &(data32->physicalHeight));
 
+	err |= get_user(u, &(data->physicalWidthUm));
+	err |= put_user(u, &(data32->physicalWidthUm));
+
+	err |= get_user(i, &(data->physicalHeightUm));
+	err |= put_user(i, &(data32->physicalHeightUm));
 
 	err |= get_user(i, &(data->isConnected));
 	err |= put_user(i, &(data32->isConnected));
@@ -867,6 +896,7 @@ static int compat_get_disp_frame_cfg(struct compat_disp_frame_cfg_t __user *data
 					struct disp_frame_cfg_t __user *data)
 {
 	compat_uint_t u;
+	compat_uptr_t p;
 	int err;
 	int j;
 
@@ -902,6 +932,12 @@ static int compat_get_disp_frame_cfg(struct compat_disp_frame_cfg_t __user *data
 	err |= get_user(u, &(data32->present_fence_idx));
 	err |= put_user(u, &(data->present_fence_idx));
 
+	err |= get_user(u, &(data32->prev_present_fence_fd));
+	err |= put_user(u, &(data->prev_present_fence_fd));
+
+	err |= get_user(p, (unsigned long *)&(data32->prev_present_fence_struct));
+	err |= put_user(p, (unsigned long *)&(data->prev_present_fence_struct));
+
 	err |= get_user(u, &(data32->tigger_mode));
 	err |= put_user(u, &(data->tigger_mode));
 
@@ -911,6 +947,123 @@ static int compat_get_disp_frame_cfg(struct compat_disp_frame_cfg_t __user *data
 	return err;
 }
 
+static int compat_get_disp_layer_info(compat_disp_layer_info *disp_info_user_compat,
+					 disp_layer_info *disp_info_user)
+{
+	int err, n, j;
+
+	layer_config* config;
+	compat_layer_config* config32;
+	int layer_num;
+
+	err = 0;
+
+	for (n = 0; n < 2; n++) {
+		layer_num = disp_info_user_compat->layer_num[n];
+		DISPDBG("[FB]: layer_num: %d line:%d\n", layer_num, __LINE__);
+
+		if (layer_num) {
+			config = kzalloc(sizeof(layer_config) * layer_num, GFP_KERNEL);
+			config32 = kzalloc(sizeof(compat_layer_config) * layer_num, GFP_KERNEL);
+
+			if (copy_from_user(config32, compat_ptr(disp_info_user_compat->input_config[n]),
+				sizeof(compat_layer_config) * layer_num)) {
+				DISPERR("[FB]: copy_from_user failed! line:%d\n", __LINE__);
+				err |= -EFAULT;
+			}
+
+			for (j = 0; j < layer_num ; j++) {
+				config[j].ovl_id = config32[j].ovl_id;
+				config[j].src_fmt = config32[j].src_fmt;
+				config[j].dst_offset_x = config32[j].dst_offset_x;
+				config[j].dst_offset_y = config32[j].dst_offset_y;
+				config[j].dst_width = config32[j].dst_width;
+				config[j].dst_height = config32[j].dst_height;
+				config[j].ext_sel_layer = config32[j].ext_sel_layer;
+				DISPDBG("[FB]: config[%d]: dst_width: %d, dst_height: %d line:%d\n", j, config32[j].dst_width, config32[j].dst_height, __LINE__);
+			}
+
+			disp_info_user->input_config[n] = compat_alloc_user_space(sizeof(layer_config) * layer_num);
+
+			if (copy_to_user(disp_info_user->input_config[n], config,
+				sizeof(layer_config) * layer_num)) {
+				DISPERR("[FB]: copy_to_user failed! line:%d\n", __LINE__);
+				err |= -EFAULT;
+			}
+
+			kfree(config32);
+			kfree(config);
+		}
+
+		disp_info_user->disp_mode[n] = disp_info_user_compat->disp_mode[n];
+		disp_info_user->layer_num[n] = disp_info_user_compat->layer_num[n];
+
+		disp_info_user->gles_head[n] = disp_info_user_compat->gles_head[n];
+		disp_info_user->gles_tail[n] = disp_info_user_compat->gles_tail[n];
+	}
+
+	disp_info_user->hrt_num = disp_info_user_compat->hrt_num;
+
+	return err;
+}
+
+static int compat_put_disp_layer_info(compat_disp_layer_info *disp_info_user_compat,
+					 disp_layer_info *disp_info_user)
+{
+	int err, n, j;
+
+	layer_config* config;
+	compat_layer_config* config32;
+	int layer_num;
+
+	err = 0;
+
+	for (n = 0; n < 2; n++) {
+		layer_num = disp_info_user_compat->layer_num[n];
+		DISPDBG("[FB]: layer_num: %d line:%d\n", layer_num, __LINE__);
+
+		if (layer_num) {
+			config = kzalloc(sizeof(layer_config) * layer_num, GFP_KERNEL);
+			config32 = kzalloc(sizeof(compat_layer_config) * layer_num, GFP_KERNEL);
+
+			if (copy_from_user(config, disp_info_user->input_config[n],
+				sizeof(layer_config) * layer_num)) {
+				DISPERR("[FB]: copy_from_user failed! line:%d\n", __LINE__);
+				err |= -EFAULT;
+			}
+
+			for (j = 0; j < layer_num ; j++) {
+				config32[j].ovl_id = config[j].ovl_id;
+				config32[j].src_fmt = config[j].src_fmt;
+				config32[j].dst_offset_x = config[j].dst_offset_x;
+				config32[j].dst_offset_y = config[j].dst_offset_y;
+				config32[j].dst_width = config[j].dst_width;
+				config32[j].dst_height = config[j].dst_height;
+				config32[j].ext_sel_layer = config[j].ext_sel_layer;
+                DISPDBG("[FB]: config[%d]: dst_width: %d, dst_height: %d line:%d\n", j, config32[j].dst_width, config32[j].dst_height, __LINE__);
+			}
+
+			if (copy_to_user(compat_ptr(disp_info_user_compat->input_config[n]), config32,
+				sizeof(compat_layer_config) * layer_num)) {
+				DISPERR("[FB]: copy_to_user failed! line:%d\n", __LINE__);
+				err |= -EFAULT;
+			}
+
+			kfree(config32);
+			kfree(config);
+		}
+
+		disp_info_user_compat->disp_mode[n] = disp_info_user->disp_mode[n];
+		disp_info_user_compat->layer_num[n] = disp_info_user->layer_num[n];
+
+		disp_info_user_compat->gles_head[n] = disp_info_user->gles_head[n];
+		disp_info_user_compat->gles_tail[n] = disp_info_user->gles_tail[n];
+	}
+
+	disp_info_user_compat->hrt_num = disp_info_user->hrt_num;
+
+	return err;
+}
 
 int _compat_ioctl_create_session(struct file *file, unsigned long arg)
 {
@@ -1318,6 +1471,39 @@ int _compat_ioctl_frame_config(struct file *file, unsigned long arg)
 	}
 
 	ret = file->f_op->unlocked_ioctl(file, DISP_IOCTL_FRAME_CONFIG, (unsigned long)data);
+	return ret;
+}
+
+int _compat_ioctl_query_valid_layer(struct file *file, unsigned long arg)
+{
+	int ret = 0;
+	int err = 0;
+
+	compat_disp_layer_info disp_info_user_compat;
+	disp_layer_info disp_info_user;
+	void __user *argp = compat_ptr(arg);
+
+	DISPDBG("%s\n", __func__);
+
+	if (copy_from_user(&disp_info_user_compat, argp, sizeof(disp_info_user_compat))) {
+		DISPERR("[FB]: copy_from_user failed! line:%d\n", __LINE__);
+		ret = -EFAULT;
+	}
+
+	err = compat_get_disp_layer_info(&disp_info_user_compat, &disp_info_user);
+	if (err) {
+		DISPERR("compat_get_disp_layer_info fail!\n");
+		return err;
+	}
+
+	ret = dispsys_hrt_calc(&disp_info_user);
+
+	err = compat_put_disp_layer_info(&disp_info_user_compat, &disp_info_user);
+	if (err) {
+		DISPERR("compat_put_disp_layer_info fail!\n");
+		return err;
+	}
+
 	return ret;
 }
 

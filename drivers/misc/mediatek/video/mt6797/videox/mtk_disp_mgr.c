@@ -1648,7 +1648,7 @@ long mtk_disp_mgr_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
 	int ret = -1;
 
-	/* DISPMSG("mtk_disp_mgr_ioctl, cmd=%s, arg=0x%08x\n", _session_ioctl_spy(cmd), arg); */
+	/* DISPMSG("mtk_disp_mgr_ioctl, cmd=%s, arg=0x%08lx\n", _session_ioctl_spy(cmd), arg); */
 
 	switch (cmd) {
 	case DISP_IOCTL_CREATE_SESSION:
@@ -1809,6 +1809,34 @@ const char *_session_compat_ioctl_spy(unsigned int cmd)
 		{
 			return "DISP_IOCTL_SET_SESSION_MODE";
 		}
+    case COMPAT_DISP_IOCTL_SET_MAX_LAYER_NUM:
+		{
+			return "DISP_IOCTL_SET_MAX_LAYER_NUM";
+		}
+	case COMPAT_DISP_IOCTL_SET_VSYNC_FPS:
+		{
+			return "DISP_IOCTL_SET_VSYNC_FPS";
+		}
+	case COMPAT_DISP_IOCTL_GET_PRESENT_FENCE:
+		{
+			return "DISP_IOCTL_GET_PRESENT_FENCE";
+		}
+	case COMPAT_DISP_IOCTL_GET_IS_DRIVER_SUSPEND:
+		{
+			return "DISP_IOCTL_GET_IS_DRIVER_SUSPEND";
+		}
+	case COMPAT_DISP_IOCTL_GET_DISPLAY_CAPS:
+		{
+			return "DISP_IOCTL_GET_DISPLAY_CAPS";
+		}
+	case COMPAT_DISP_IOCTL_FRAME_CONFIG:
+		{
+			return "DISP_IOCTL_FRAME_CONFIG";
+		}
+	case COMPAT_DISP_IOCTL_QUERY_VALID_LAYER:
+		{
+			return "DISP_IOCTL_QUERY_VALID_LAYER";
+		}
 	default:
 		{
 			return "unknown";
@@ -1879,6 +1907,10 @@ static long mtk_disp_mgr_compat_ioctl(struct file *file, unsigned int cmd,  unsi
 		{
 		    return _compat_ioctl_set_output_buffer(file, arg);
 		}
+    case COMPAT_DISP_IOCTL_QUERY_VALID_LAYER:
+    {
+        return _compat_ioctl_query_valid_layer(file, arg);
+    }
 	case DISP_IOCTL_SET_SCENARIO:
 	{
 		/* arg of this ioctl is all unsigned int, don't need special compat ioctl */
