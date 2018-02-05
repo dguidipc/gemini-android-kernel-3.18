@@ -222,6 +222,12 @@ config MTK_COMBO_BT
 	help
 	  MTK BT /dev/stpbt driver for Bluedroid
 
+config MTK_COMBO_BT_HCI
+	tristate "MediaTek Combo Chip BlueZ driver"
+	depends on BT && MTK_COMBO
+	help
+	  MTK BT driver for BlueZ (hci_stp.ko)
+
 config MTK_COMBO_ANT
 	tristate "MediaTek Combo Chip ANT driver"
 	depends on MTK_COMBO

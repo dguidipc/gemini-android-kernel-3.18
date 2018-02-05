@@ -303,6 +303,7 @@ struct hci_dev {
 	__u32			req_result;
 
 	void			*smp_data;
+	void			*driver_data;
 
 	struct discovery_state	discovery;
 	struct hci_conn_hash	conn_hash;

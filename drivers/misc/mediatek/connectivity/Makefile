@@ -29,6 +29,8 @@ endif
 
     obj-y += common/
     obj-$(CONFIG_MTK_COMBO_BT) += bt/
+    #Use BT HCI driver
+    obj-$(CONFIG_MTK_COMBO_BT_HCI) += drv_bt/
     obj-$(CONFIG_MTK_COMBO_WIFI) += wlan/
     obj-$(CONFIG_MTK_COMBO_GPS) += gps/
     obj-$(CONFIG_MTK_COMBO_ANT) += ant/
