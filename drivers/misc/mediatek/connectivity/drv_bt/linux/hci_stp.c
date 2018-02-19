@@ -200,6 +200,7 @@ static unsigned char bt_set_RF_reg_100[10] =
 static unsigned char bt_set_RF_reg_100_evt[] =
     {0x04, 0x0E, 0x04, 0x01, 0xB0, 0xFC, 0x00};
 
+#if 0
 /* Do init commands in sequence, cmd and cmd##_evt */
 static struct hci_stp_init_cmd init_table[] =
 {
@@ -227,6 +228,19 @@ static struct hci_stp_init_cmd init_table[] =
     hci_stp_init_entry(bt_set_SLP_LDOD_reg),
     hci_stp_init_entry(bt_set_RF_reg_100),
 };
+#else
+/* Do init commands in sequence, cmd and cmd##_evt */
+static struct hci_stp_init_cmd init_table[] =
+{
+    /* refer to mediatek/external/bluetooth/driver/combo/radiomod.c: bt_init_script_6630[] */
+    hci_stp_init_entry(bt_get_bd_addr),
+    hci_stp_init_entry(bt_set_bd_addr),
+    hci_stp_init_entry(bt_set_radio),
+    hci_stp_init_entry(bt_set_tx_pwr_offset),
+    hci_stp_init_entry(bt_set_sleep),
+    hci_stp_init_entry(bt_reset),
+};
+#endif
 
 /*******************************************************************************
 *                             D A T A   T Y P E S
