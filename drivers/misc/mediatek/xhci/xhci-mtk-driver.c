@@ -436,8 +436,10 @@ static void mtk_enable_otg_mode(void)
 		}
 		else
 		{
+#if defined(CONFIG_MTK_BQ25896_SUPPORT)
 			bq25890_otg_en(0x01);
 			bq25890_set_boost_ilim(0x03);	/* 1.3A */		
+#endif
 		}	
 #endif
 #endif
