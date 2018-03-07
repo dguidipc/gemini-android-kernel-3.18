@@ -143,7 +143,7 @@ KEY_STATE key_map[]={
 	{"T"	,	KEY_T,					0,	KROW_P0_1,	KROW_P1_3},  //
 	{"F"	,	KEY_F,				0,	KROW_P0_2,	KROW_P1_3},  //
 	{"X"	,	KEY_X,					0,	KROW_P0_3,	KROW_P1_3}, //
-	{"FN"	,	KEY_FN,					0,	KROW_P0_4,	KROW_P1_3}, //
+	{"META-L"	,	KEY_LEFTMETA,					0,	KROW_P0_4,	KROW_P1_3}, //
 	{"SHIFT-R"	,	KEY_RIGHTSHIFT,					0,	KROW_P0_5,	KROW_P1_3}, //
 	{"P"	,	KEY_P,					0,	KROW_P0_6,	KROW_P1_3},  //
 	{"NULL"	,	KEY_UNKNOWN,					0,	KROW_P0_7,	KROW_P1_3},  //
@@ -785,7 +785,7 @@ static void aw9523_input_register(void)
 	input_set_capability(aw9523_key->input_dev, EV_KEY, KEY_COMMA);
 	input_set_capability(aw9523_key->input_dev, EV_KEY, KEY_LEFTALT);
 	input_set_capability(aw9523_key->input_dev, EV_KEY, KEY_M);
-	input_set_capability(aw9523_key->input_dev, EV_KEY, KEY_FN);
+	input_set_capability(aw9523_key->input_dev, EV_KEY, KEY_LEFTMETA);
 	input_set_capability(aw9523_key->input_dev, EV_KEY, KEY_SPACE);
 	input_set_capability(aw9523_key->input_dev, EV_KEY, KEY_DOT);
 	input_set_capability(aw9523_key->input_dev, EV_KEY, KEY_LEFTCTRL);
