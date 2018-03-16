@@ -1,0 +1,7 @@
+config MTK_HALL
+	tristate "MTK Hall Support"
+	default n
+	help
+	  Say Y here if you have Eastaeon hall device.
+
+	  If unsure, say Y.

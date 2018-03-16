@@ -1,0 +1,11 @@
+#
+# Touchscreen driver configuration
+#
+config TOUCHSCREEN_MTK_NT36xxx
+		tristate "NT36xxx for Mediatek package"
+		default n
+		help
+			Say Y here if you have a Novatek NT36xxx Panel
+			to the host processor over I2C
+
+			If unsure, say N.

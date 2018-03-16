@@ -1,0 +1,253 @@
+/*
+ * eastaeon's GPIO SoC device tree source
+ * sanford.lin
+ */
+
+&aeon_gpio {
+    pinctrl-names = "default",
+            "aeon_chr_ce0", "aeon_chr_ce1",
+            "aeon_factory_id",
+            "aeon_flash_enf0", "aeon_flash_enf1",
+            "aeon_flash_enm0", "aeon_flash_enm1", "aeon_flash_enm_pwm",
+            "aeon_flash_sub_enm0", "aeon_flash_sub_enm1", "aeon_flash_sub_enm_pwm",
+            "aeon_lcd_bias_enp0", "aeon_lcd_bias_enp1", "aeon_lcd_bias_enn0", "aeon_lcd_bias_enn1",
+            "sil9022_hpd_int", "fusb301a_sw_en_low", "fusb301a_sw_en_high", "fusb301a_sw_sel_low",
+            "fusb301a_sw_sel_high", "sw7226_en_low", "sw7226_en_high", "usb1_drvvbus_low", "usb1_drvvbus_high",
+			"usb_det_low";
+
+    pinctrl-0 = <&aeon_pins_default>;
+
+    /* charge_ce-gpio output */
+    pinctrl-1 = <&aeon_pins_chr_ce0_gpio>;
+    pinctrl-2 = <&aeon_pins_chr_ce1_gpio>;
+
+    /* factory_id-gpio input */
+    pinctrl-3 = <&aeon_pins_factory_id_gpio>;
+    //aeon_factory_id = <x>; //GPIO PIN
+
+    /* flashlight-gpio output */
+    pinctrl-4 = <&aeon_pins_flash_enf0_gpio>;
+    pinctrl-5 = <&aeon_pins_flash_enf1_gpio>;
+
+    pinctrl-6 = <&aeon_pins_flash_enm0_gpio>;
+    pinctrl-7 = <&aeon_pins_flash_enm1_gpio>;
+    pinctrl-8 = <&aeon_pins_flash_enm_pwm_gpio>;
+
+    pinctrl-9 = <&aeon_pins_flash_sub_enm0_gpio>;
+    pinctrl-10 = <&aeon_pins_flash_sub_enm1_gpio>;
+    pinctrl-11 = <&aeon_pins_flash_sub_enm_pwm_gpio>;
+    pinctrl-12 = <&aeon_pins_lcd_bias_enp0_gpio>;
+    pinctrl-13 = <&aeon_pins_lcd_bias_enp1_gpio>;
+    pinctrl-14 = <&aeon_pins_lcd_bias_enn0_gpio>;
+    pinctrl-15 = <&aeon_pins_lcd_bias_enn1_gpio>;	
+    
+    pinctrl-16 = <&aeon_pins_sil9022_hpd_int_gpio>;
+    sil9022_hpd_int = <89>; /*GPIO PIN*/
+    pinctrl-17 = <&aeon_pins_fusb301a_sw_en_low_gpio>;
+    pinctrl-18 = <&aeon_pins_fusb301a_sw_en_high_gpio>;
+    pinctrl-19 = <&aeon_pins_fusb301a_sw_sel_low_gpio>;
+    pinctrl-20 = <&aeon_pins_fusb301a_sw_sel_high_gpio>;
+    pinctrl-21 = <&aeon_pins_sw7226_en_low_gpio>;
+    pinctrl-22 = <&aeon_pins_sw7226_en_high_gpio>;
+    
+    pinctrl-23 = <&aeon_pins_usb1_drvvbus_low_gpio>;
+    pinctrl-24 = <&aeon_pins_usb1_drvvbus_high_gpio>;
+	pinctrl-25 = <&aeon_pins_usb_det_low_gpio>;
+    
+    status = "okay";
+};
+&pio {
+    aeon_pins_default: aeon@0 {
+    };
+
+    /*GPIO_CHARGER_CE_PIN*/
+    aeon_pins_chr_ce0_gpio: aeon@1 {
+        //pins_cmd_dat {
+            //pins = <PINMUX_GPIOX__FUNC_GPIOX>;
+            //slew-rate = <1>;
+            //output-low;
+        //};
+    };
+    aeon_pins_chr_ce1_gpio: aeon@2 {
+        //pins_cmd_dat {
+            //pins = <PINMUX_GPIOX__FUNC_GPIOX>;
+            //slew-rate = <1>;
+            //output-high;
+        //};
+    };
+
+    /*GPIO_FACTORY_ID_PIN*/
+    aeon_pins_factory_id_gpio: aeon@3 {
+        //pins_cmd_dat {
+            //pins = <PINMUX_GPIOX__FUNC_GPIOX>;
+            //slew-rate = <0>;
+            //bias-pull-up = <00>;
+        //};
+    };
+
+    /*GPIO_FLASHLIGHT_EN_PIN*/
+    aeon_pins_flash_enf0_gpio: aeon@4 {
+        //pins_cmd_dat {
+            //pins = <PINMUX_GPIOX__FUNC_GPIOX>;
+            //slew-rate = <1>;
+            //output-low;
+        //};
+    };
+    aeon_pins_flash_enf1_gpio: aeon@5 {
+        //pins_cmd_dat {
+            //pins = <PINMUX_GPIOX__FUNC_GPIOX>;
+            //slew-rate = <1>;
+            //output-high;
+        //};
+    };
+    aeon_pins_flash_enm0_gpio: aeon@6 {
+        //pins_cmd_dat {
+            //pins = <PINMUX_GPIOX__FUNC_GPIOX>;
+            //slew-rate = <1>;
+            //output-low;
+        //};
+    };
+    aeon_pins_flash_enm1_gpio: aeon@7 {
+        //pins_cmd_dat {
+            //pins = <PINMUX_GPIOX__FUNC_GPIOX>;
+            //slew-rate = <1>;
+            //output-high;
+        //};
+    };
+    aeon_pins_flash_enm_pwm_gpio: aeon@8 {
+        //pins_cmd_dat {
+            //pins = <PINMUX_GPIOXX__FUNC_PWM_X>;
+        //};
+    };
+
+    aeon_pins_flash_sub_enm0_gpio: aeon@9 {
+        //pins_cmd_dat {
+            //pins = <PINMUX_GPIOX__FUNC_GPIOX>;
+            //slew-rate = <1>;
+            //output-low;
+        //};
+    };
+    aeon_pins_flash_sub_enm1_gpio: aeon@10 {
+        //pins_cmd_dat {
+            //pins = <PINMUX_GPIOX__FUNC_GPIOX>;
+            //slew-rate = <1>;
+            //output-high;
+        //};
+    };
+    aeon_pins_flash_sub_enm_pwm_gpio: aeon@11 {
+        //pins_cmd_dat {
+            //pins = <PINMUX_GPIOXX__FUNC_PWM_X>;
+        //};
+    };
+    /*GPIO_LCD_BIAS_PIN*/
+    aeon_pins_lcd_bias_enp0_gpio: aeon@12 {
+        pins_cmd_dat {
+            pins = <PINMUX_GPIO60__FUNC_GPIO60>;
+            slew-rate = <1>;
+            output-low;
+        };
+    };
+    aeon_pins_lcd_bias_enp1_gpio: aeon@13 {
+        pins_cmd_dat {
+            pins = <PINMUX_GPIO60__FUNC_GPIO60>;
+            slew-rate = <1>;
+            output-high;
+        };
+    };
+    /*GPIO_LCD_BIAS_PIN*/
+    aeon_pins_lcd_bias_enn0_gpio: aeon@14 {
+        pins_cmd_dat {
+            pins = <PINMUX_GPIO251__FUNC_GPIO251>;
+            slew-rate = <1>;
+            output-low;
+        };
+    };
+    aeon_pins_lcd_bias_enn1_gpio: aeon@15 {
+        pins_cmd_dat {
+            pins = <PINMUX_GPIO251__FUNC_GPIO251>;
+            slew-rate = <1>;
+            output-high;
+        };
+    };	
+    
+    aeon_pins_sil9022_hpd_int_gpio: aeon@16 {
+        pins_cmd_dat {
+            pins = <PINMUX_GPIO89__FUNC_GPIO89>;
+            slew-rate = <0>;
+            bias-pull-down = <00>;
+        };
+    };
+    
+    aeon_pins_fusb301a_sw_en_low_gpio:aeon@17 {
+		pins_cmd_dat {
+			pins = <PINMUX_GPIO70__FUNC_GPIO70>;
+			slew-rate = <1>;
+			output-low;
+		};
+	};
+	
+	aeon_pins_fusb301a_sw_en_high_gpio:aeon@18 {
+		pins_cmd_dat {
+			pins = <PINMUX_GPIO70__FUNC_GPIO70>;
+			slew-rate = <1>;
+			output-high;
+		};
+	};
+	
+	aeon_pins_fusb301a_sw_sel_low_gpio:aeon@19 {
+		pins_cmd_dat {
+			pins = <PINMUX_GPIO71__FUNC_GPIO71>;
+			slew-rate = <1>;
+			output-low;
+		};
+	};
+	
+	aeon_pins_fusb301a_sw_sel_high_gpio:aeon@20 {
+		pins_cmd_dat {
+			pins = <PINMUX_GPIO71__FUNC_GPIO71>;
+			slew-rate = <1>;
+			output-high;
+		};
+	};
+		
+	aeon_pins_sw7226_en_low_gpio:aeon@21 {
+		pins_cmd_dat {
+			pins = <PINMUX_GPIO72__FUNC_GPIO72>;
+			slew-rate = <1>;
+			output-low;
+		};
+	};
+	
+	aeon_pins_sw7226_en_high_gpio:aeon@22 {
+		pins_cmd_dat {
+			pins = <PINMUX_GPIO72__FUNC_GPIO72>;
+			slew-rate = <1>;
+			output-high;
+		};
+	};
+	
+	aeon_pins_usb1_drvvbus_low_gpio:aeon@23 {
+		pins_cmd_dat {
+			pins = <PINMUX_GPIO94__FUNC_GPIO94>;
+			slew-rate = <1>;
+			output-low;
+		};
+	};
+	
+	aeon_pins_usb1_drvvbus_high_gpio:aeon@24 {
+		pins_cmd_dat {
+			pins = <PINMUX_GPIO94__FUNC_GPIO94>;
+			slew-rate = <1>;
+			output-high;
+		};
+	};
+ 
+	aeon_pins_usb_det_low_gpio:aeon@25 {
+		pins_cmd_dat {
+			pins = <PINMUX_GPIO237__FUNC_GPIO237>;
+			slew-rate = <0>;
+			bias-pull-down = <00>;		
+			input-enable;			
+		};
+	}; 
+};

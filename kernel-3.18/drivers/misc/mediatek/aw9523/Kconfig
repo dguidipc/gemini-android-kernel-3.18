@@ -1,0 +1,7 @@
+config MTK_AW9523
+	tristate "MTK AW9523 Support"
+	default n
+	help
+	  Say Y here if you have AW9523 Key device.
+
+	  If unsure, say Y.
