@@ -106,21 +106,15 @@ static void fcover_key_handler(struct work_struct *work)
 		
 		if(fcover_close_flag == FCOVER_CLOSE)
 		{
-			input_report_key(kpd_accdet_dev, KEY_F11, 1);
+			input_report_switch(kpd_accdet_dev, SW_LID, 1);
 			input_sync(kpd_accdet_dev);
-			mdelay(10);
-			input_report_key(kpd_accdet_dev, KEY_F11, 0);
-      input_sync(kpd_accdet_dev);
-     	printk("zhaolong=======F11====\n");
+			printk("zhaolong=======FCOVER_CLOSE====\n");
 		}
 		else  // open
 		{
-			input_report_key(kpd_accdet_dev, KEY_F12, 1);
-      input_sync(kpd_accdet_dev);
-      mdelay(10);
-			input_report_key(kpd_accdet_dev, KEY_F12, 0);
-      input_sync(kpd_accdet_dev);
-      printk("zhaolong=======F12====\n");
+			input_report_switch(kpd_accdet_dev, SW_LID, 0);
+			input_sync(kpd_accdet_dev);
+			printk("zhaolong=======FCOVER_OPEN====\n");
 		}
 		switch_set_state((struct switch_dev *)&fcover_data, fcover_close_flag);
 	}
@@ -220,9 +214,8 @@ static int hall_pdrv_probe(struct platform_device *pdev)
 //		return -ENOMEM;
 //	}
 
-	__set_bit(EV_KEY, kpd_accdet_dev->evbit);
-	__set_bit(KEY_F11, kpd_accdet_dev->keybit);
-	__set_bit(KEY_F12, kpd_accdet_dev->keybit);		
+	__set_bit(EV_SW, kpd_accdet_dev->evbit);
+	__set_bit(SW_LID, kpd_accdet_dev->swbit);
 
 //	hall_input_dev->id.bustype = BUS_HOST;
 //	hall_input_dev->name = HALL_NAME;
