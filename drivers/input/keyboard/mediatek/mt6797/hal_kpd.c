@@ -371,7 +371,7 @@ void kpd_pmic_pwrkey_hal(unsigned long pressed)
 {
 #ifdef CONFIG_KPD_PWRKEY_USE_PMIC
 	if (!kpd_sb_enable) {
-		input_report_key(kpd_input_dev, kpd_dts_data.kpd_sw_pwrkey, pressed);
+		input_report_key(kpd_input_dev, KEY_ESC, pressed);
 		input_sync(kpd_input_dev);
 		if (kpd_show_hw_keycode) {
 			kpd_print(KPD_SAY "(%s) HW keycode =%d using PMIC\n",

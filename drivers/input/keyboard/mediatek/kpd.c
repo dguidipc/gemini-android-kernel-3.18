@@ -848,7 +848,7 @@ static int kpd_pdrv_probe(struct platform_device *pdev)
 	__set_bit(EV_KEY, kpd_input_dev->evbit);
 
 #if defined(CONFIG_KPD_PWRKEY_USE_EINT) || defined(CONFIG_KPD_PWRKEY_USE_PMIC)
-	__set_bit(kpd_dts_data.kpd_sw_pwrkey, kpd_input_dev->keybit);
+	__set_bit(KEY_ESC, kpd_input_dev->keybit);
 	kpd_keymap[8] = 0;
 #endif
 	if (!kpd_dts_data.kpd_use_extend_type) {
