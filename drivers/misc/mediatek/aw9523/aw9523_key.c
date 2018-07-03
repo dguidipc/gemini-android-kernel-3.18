@@ -307,16 +307,18 @@ static void aw9523_key_eint_work(struct work_struct *work)
 {
 	struct aw9523_key_data *pdata;
 	KEY_STATE *keymap;
-	unsigned char i, j, cnt, update_now;
+	unsigned char i, j, idx;
 	unsigned char val;
+	bool update_now = false; // Used to detect ghosting
 	int keymap_len;
 	int x = 0;
 	int y = 0;
 	int t;
-	int keyIn;
-	// These data structures are large enough they won't overflow.
-	int keyCodes[P0_NUM_MAX*P1_NUM_MAX];
-	int keyValues[P0_NUM_MAX*P1_NUM_MAX];
+	// These data structures are large enough they can't overflow.
+	int press_count = 0;
+	int press_codes[P0_NUM_MAX*P1_NUM_MAX];
+	int release_count = 0;
+	int release_codes[P0_NUM_MAX*P1_NUM_MAX];
 	int discardKeyCheck;
 
 	AW9523_LOG("Handling Interrupt\n");
@@ -361,32 +363,40 @@ static void aw9523_key_eint_work(struct work_struct *work)
 	}
 	// AW9523_LOG("\n");
 
-	update_now = 0;  // FIXME can I use a boolean type with false?
+
+	/* This routine prevents ghosting.  As an example, if Control+L_Shift+N is pressed,
+	 * the keyboard detects both N & M at the same time due to the electronic circuit.
+	 * Rather than detect both keys, block both keys until either Control or L_Shift is
+	 * released, then detect the correct keypress. See youtu.be/L3ByBtM-w9I */
 	if (memcmp(keyst_old, keyst_new, P1_NUM_MAX)) {	// keyst changed
 		val = P0_KROW_MASK; // The distinct columns used
 		y = 0;
-		update_now = 1; // By default, do the update.
+		update_now = true; // Now by default, do the update since keyst changed.
 		for(i = 0; i < P1_NUM_MAX; i++) {
-			x = 0; // Will become the number of bits set in val (distinct columns)
+			if (keyst_new[i]==P0_KROW_MASK) {
+				// Most of the time no key is pressed, skip it.
+				continue;
+			}
+			x = 0; // Count the number of keys pressed (ie. clear bits)
 			for (j = 0; j < P0_NUM_MAX; j++) {
 				if (! (keyst_new[i] & (1 << j))) {	// press
 					x++; // Increase whenever this bit is clear.
-					if (! (val & (1 << j))) {
-						// Another row cleared this column.
-						// There's a conflict, block it.
-						update_now = 0;
-					}
+					// Boolean expression is false if a previous row
+					// also has this bit clear.  In this case, the
+					// keyboard is ghosting, and update_now is false.
+					update_now = update_now && (val & (1 << j));
 				}
 			}
-			// If more than one key in this row is pressed, check for conflicts.
+			// If more than one key in this row is pressed, remember which bits
+			// are clear so we can check for ghosting in other rows.
 			if (x>1) {
 				val &= keyst_new[i];
 			}
 		}
 	}
 
-	if (update_now) { // Key state change without blocking.
-		keyIn = 0;
+	// update_now is set when the key state changes and there's no ghosting right now.
+	if (update_now) {
 		for (t = 0; t < P1_NUM_MAX; t++) {
 			i = t;
 			// I'm not sure why these are swapped.  Is it still needed?
@@ -400,85 +410,85 @@ static void aw9523_key_eint_work(struct work_struct *work)
 			for (j = 0; j < P0_NUM_MAX; j++) {
 				if ((keyst_old[i] & (1 << j)) != (keyst_new[i] & (1 << j))) {	// j row & i col changed
 					// The keymap datastructure is organized this way.
-					cnt = i * P0_NUM_MAX + j;
+					idx = i * P0_NUM_MAX + j;
 					if (keyst_new[i] & (1 << j)) {	// release
-						keymap[cnt].key_val = 0;
+						keymap[idx].key_val = 0;
+						release_codes[release_count] = keymap[idx].key_code;
+						release_count++;
 					} else {	// press
-						keymap[cnt].key_val = 1;
+						keymap[idx].key_val = 1;
+						press_codes[press_count] = keymap[idx].key_code;
+						press_count++;
 					}
-					AW9523_LOG("Storing key in position %d code %d val %d\n",
-						   keyIn,
-						   keymap[cnt].key_code,
-						   keymap[cnt].key_val);
-					keyValues[keyIn] = keymap[cnt].key_val;
-					keyCodes[keyIn] = keymap[cnt].key_code;
-					keyIn++;
+					AW9523_LOG("Storing key code %d val %d\n",
+						   keymap[idx].key_code,
+						   keymap[idx].key_val);
 				}
 			}
 		}
-
-		for (t = 0; t < keyIn; t++) {
+		
+		/* Process key presses before releases because sometimes a release of one key will
+		 * unblock another key press, and we want to keep all modifier keys pressed. */
+		for (t = 0; t < press_count; t++) {
 			if (skipCycles == 0) {
 				if (discardKeyIdx > 0) {
 					AW9523_LOG("Clearing discarded keys\n");
 					discardKeyIdx = 0;
 				}
-				AW9523_LOG("Processing key in position %d code %d val %d\n",
-					   t, keyCodes[t], keyValues[t]);
+				AW9523_LOG("Processing key press in position %d code %d\n",
+					   t, press_codes[t]);
 				input_report_key(aw9523_key->input_dev,
-						 keyCodes[t],
-						 keyValues[t]);
+						 press_codes[t],
+						 1); // The one records a press
 				input_sync(aw9523_key->input_dev);
 				forceCycles = 100;
 			} else {
-				if (keyValues[t] == 1) {
-					// Key is pressed
-					if (discardKeyIdx < 99) {
-						AW9523_LOG("Putting key %d in discardKeys %d\n",
-							   keyCodes[t],
-							   discardKeyIdx);
-						discardKeys[discardKeyIdx] = keyCodes[t];
-						discardKeyIdx++;
-					}
-				} else {
-					// Key is released
-					for (discardKeyCheck = 0; discardKeyCheck < discardKeyIdx; discardKeyCheck++) {
-						if (discardKeys[discardKeyCheck] == keyCodes[t]) {
-							AW9523_LOG("Found key %d in discardKeys %d, discarding\n",
-								   keyCodes[t],
-								   discardKeyCheck);
-							discardKeyCheck = 999;
-						}
-					}
-					if (discardKeyCheck != 1000) {
-						AW9523_LOG("Releasing key in position %d code %d val %d (%d)\n",
-							   t, keyCodes[t],
-							   keyValues[t],
-							   discardKeyCheck);
-						input_report_key(aw9523_key->input_dev,
-								 keyCodes[t],
-								 keyValues[t]);
-						input_sync(aw9523_key->input_dev);
-					}
-					//switch(keyCodes[t]) {
-					//case 464:
-					//      fnPressed = keyValues[t];
-					//      break;
-					//case 29:
-					//      ctrlPressed = keyValues[t];
-					//      break;
-					//case 56:
-					//      altPressed = keyValues[t];
-					//      break;
-					//case 42:
-					//      shiftLeftPressed = keyValues[t];
-					//      break;
-					//case 54:
-					//      shiftRightPressed = keyValues[t];
-					//      break;
+				if (discardKeyIdx < 99) {
+					AW9523_LOG("Putting key press %d in discardKeys %d\n",
+						   press_codes[t],
+						   discardKeyIdx);
+					discardKeys[discardKeyIdx] = press_codes[t];
+					discardKeyIdx++;
 				}
 			}
 		}
+		// Now go through all the relaeses.
+		for (t = 0; t < release_count; t++) {
+			if (skipCycles == 0) {
+				if (discardKeyIdx > 0) {
+					AW9523_LOG("Clearing discarded keys\n");
+					discardKeyIdx = 0;
+				}
+				AW9523_LOG("Processing key release in position %d code %d\n",
+					   t, release_codes[t]);
+				input_report_key(aw9523_key->input_dev,
+						 release_codes[t],
+						 0); // The zero records a release
+				input_sync(aw9523_key->input_dev);
+				forceCycles = 100;
+			} else {
+				// Key is released
+				for (discardKeyCheck = 0; discardKeyCheck < discardKeyIdx; discardKeyCheck++) {
+					if (discardKeys[discardKeyCheck] == release_codes[t]) {
+						AW9523_LOG("Found key %d in discardKeys %d, discarding\n",
+							   release_codes[t],
+							   discardKeyCheck);
+						discardKeyCheck = 999;
+					}
+				}
+				if (discardKeyCheck != 1000) {
+					AW9523_LOG("Releasing key in position %d code %d (%d)\n",
+						   t, relase_key_code[t],
+						   discardKeyCheck);
+						input_report_key(aw9523_key->input_dev,
+								 release_codes[t],
+								 0); // Report the release.
+						input_sync(aw9523_key->input_dev);
+				}
+			}
+		}
+
+		// Store the current state so we can detect a change next time.
 		memcpy(keyst_old, keyst_new, P1_NUM_MAX);
 	}
 
