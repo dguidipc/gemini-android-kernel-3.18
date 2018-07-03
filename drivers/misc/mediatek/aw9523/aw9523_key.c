@@ -59,6 +59,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #define AW9523_I2C_NAME		"Integrated keyboard"
 
+// These masks must have the lowest bits set and top bits clear.  No skipping rows.
 #define P0_KROW_MASK 0xff
 #define P1_KCOL_MASK 0x7f
 
@@ -306,15 +307,16 @@ static void aw9523_key_eint_work(struct work_struct *work)
 {
 	struct aw9523_key_data *pdata;
 	KEY_STATE *keymap;
-	unsigned char i, j, cnt;
+	unsigned char i, j, cnt, update_now;
 	unsigned char val;
 	int keymap_len;
 	int x = 0;
 	int y = 0;
 	int t;
 	int keyIn;
-	int keyCodes[100];
-	int keyValues[100];
+	// These data structures are large enough they won't overflow.
+	int keyCodes[P0_NUM_MAX*P1_NUM_MAX];
+	int keyValues[P0_NUM_MAX*P1_NUM_MAX];
 	int discardKeyCheck;
 
 	AW9523_LOG("Handling Interrupt\n");
@@ -359,74 +361,62 @@ static void aw9523_key_eint_work(struct work_struct *work)
 	}
 	// AW9523_LOG("\n");
 
+	update_now = 0;  // FIXME can I use a boolean type with false?
 	if (memcmp(keyst_old, keyst_new, P1_NUM_MAX)) {	// keyst changed
+		val = P0_KROW_MASK; // The distinct columns used
+		y = 0;
+		update_now = 1; // By default, do the update.
+		for(i = 0; i < P1_NUM_MAX; i++) {
+			x = 0; // Will become the number of bits set in val (distinct columns)
+			for (j = 0; j < P0_NUM_MAX; j++) {
+				if (! (keyst_new[i] & (1 << j))) {	// press
+					x++; // Increase whenever this bit is clear.
+					if (! (val & (1 << j))) {
+						// Another row cleared this column.
+						// There's a conflict, block it.
+						update_now = 0;
+					}
+				}
+			}
+			// If more than one key in this row is pressed, check for conflicts.
+			if (x>1) {
+				val &= keyst_new[i];
+			}
+		}
+	}
+
+	if (update_now) { // Key state change without blocking.
 		keyIn = 0;
 		for (t = 0; t < P1_NUM_MAX; t++) {
 			i = t;
+			// I'm not sure why these are swapped.  Is it still needed?
 			if (t == 3)
 				i = 6;
 			if (t == 6)
 				i = 3;
-			if (keyst_old[i] != keyst_new[i]) {	// keyst of i col changed
-				for (j = 0; j < P0_NUM_MAX; j++) {
-					y = 0;
-					if (P0_KROW_MASK & (1 << j)) {	// j row gpio used
-						if ((keyst_old[i] & (1 << j)) != (keyst_new[i] & (1 << j))) {	// j row & i col changed
-							for (cnt = 0; cnt < keymap_len; cnt++) {	// find row&col in the keymap
-								if ((keymap[cnt].row == j) && (keymap[cnt].col == i)) {
-									break;
-								}
-							}
-							if (keyst_new[i] & (1 << j)) {	// release
-								keymap[cnt].key_val = 0;
-							} else {	// press
-								keymap[cnt].key_val = 1;
-								x++;
-								y++;
-							}
-							if (keyIn < 100) {
-								AW9523_LOG("Storing key in position %d code %d val %d\n",
-									   keyIn,
-									   keymap[cnt].key_code,
-									   keymap[cnt].key_val);
-								keyValues[keyIn] = keymap[cnt].key_val;
-								keyCodes[keyIn] = keymap[cnt].key_code;
-								keyIn++;
-							} else {
-								AW9523_LOG("Too many keys - giving up");
-							}
-							// if (keyIn > MAX_KEYS_TOGETHER) {
-							if (x >= 4 || y >= 3) {
-								AW9523_LOG("Too many keys\n");
-								skipCycles = 50;
-								forceCycles = 0;
-							}
-							//if (x < 4 && y < 3) {
-							//if (keyIn < 10) {
-							//AW9523_LOG("Cycle %d - Storing key in position %d\n code %d val %d", keyCurrentCycle, keyIn, keymap[cnt].key_code, keymap[cnt].key_val);
-							//keyValues[keyIn] = keymap[cnt].key_val;
-							//keyCodes[keyIn] = keymap[cnt].key_code;
-							//keyIn++;
-							//}
-							//input_report_key(aw9523_key->input_dev, keymap[cnt].key_code, keymap[cnt].key_val);
-							//input_sync(aw9523_key->input_dev);
-							//AW9523_LOG("%s: key_report: p0-row=%d, p1-col=%d, key_code=%d, key_val=%d\n",
-							//      __func__, j, i, keymap[cnt].key_code, keymap[cnt].key_val);
-							//if (keymap[cnt].key_code == KEY_Z && keymap[cnt].key_val == 0) {
-							//      if (keySkipCycle < 6)
-							//              keySkipCycle++;
-							//      else
-							//              keySkipCycle = 1;
-							//      AW9523_LOG("Cycle %d - Setting skip cycle to %d\n", keyCurrentCycle, keySkipCycle);
-							//}
-							//}
-						}
+			if (keyst_old[i] == keyst_new[i]) {
+				continue; // Skip if keyst of i didn't change.
+			}
+			for (j = 0; j < P0_NUM_MAX; j++) {
+				if ((keyst_old[i] & (1 << j)) != (keyst_new[i] & (1 << j))) {	// j row & i col changed
+					// The keymap datastructure is organized this way.
+					cnt = i * P0_NUM_MAX + j;
+					if (keyst_new[i] & (1 << j)) {	// release
+						keymap[cnt].key_val = 0;
+					} else {	// press
+						keymap[cnt].key_val = 1;
 					}
+					AW9523_LOG("Storing key in position %d code %d val %d\n",
+						   keyIn,
+						   keymap[cnt].key_code,
+						   keymap[cnt].key_val);
+					keyValues[keyIn] = keymap[cnt].key_val;
+					keyCodes[keyIn] = keymap[cnt].key_code;
+					keyIn++;
 				}
 			}
 		}
 
-		//if ((keyIn <= MAX_KEYS_TOGETHER)) {
 		for (t = 0; t < keyIn; t++) {
 			if (skipCycles == 0) {
 				if (discardKeyIdx > 0) {
@@ -489,7 +479,6 @@ static void aw9523_key_eint_work(struct work_struct *work)
 				}
 			}
 		}
-		//}
 		memcpy(keyst_old, keyst_new, P1_NUM_MAX);
 	}
 
@@ -508,21 +497,6 @@ static void aw9523_key_eint_work(struct work_struct *work)
 		AW9523_LOG("Skipping cycle %d\n", skipCycles);
 		skipCycles--;
 	}
-	//keyCurrentCycle++;
-	//if (keyCurrentCycle >= keySkipCycle) {
-	//      if (keyIn <= keyMaxKeys) {
-	//              for (t=0;t<keyIn;t++) {
-	//                              //input_report_key(aw9523_key->input_dev, keyCodes[t], keyValues[t]);
-	//                              //input_sync(aw9523_key->input_dev);
-	//                              AW9523_LOG("Cycle %d - Releasing key %s: key_code=%d, key_val=%d\n", keyCurrentCycle,
-	//                                              __func__, keyCodes[t], keyValues[t]);
-	//              }
-	//      }
-	//      else
-	//              AW9523_LOG("Cycle %d - Too many keys - flushing keys\n", keyCurrentCycle);
-	//      keyIn = 0;
-	//      keyCurrentCycle = 0;
-	//}
 
 
 	if (((!(memcmp(&keyst_new[0], &keyst_def[KEYST_NEW][0], P1_NUM_MAX))) && (skipCycles == 0)) || (!aw9523_key->is_screen_on)) {	// all key release
