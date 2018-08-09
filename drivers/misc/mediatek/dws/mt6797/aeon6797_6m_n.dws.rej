@@ -1,0 +1,9 @@
+--- kernel-3.18/drivers/misc/mediatek/dws/mt6797/aeon6797_6m_n.dws
++++ kernel-3.18/drivers/misc/mediatek/dws/mt6797/aeon6797_6m_n.dws
+@@ -1,5 +1,5 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+-<!--dct_version="2.5" buid_sn="161025" dws_modification_time="05.05.2018.11:33:28"-->
++<!--dct_version="2.5" buid_sn="161025" dws_modification_time="07.31.2018.13:54:58"-->
+ <dct_cfg>
+     <general chip="MT6797">
+         <proj>aeon6797_6m_n</proj>

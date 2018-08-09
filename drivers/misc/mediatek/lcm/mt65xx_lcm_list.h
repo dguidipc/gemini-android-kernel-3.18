@@ -18,6 +18,7 @@
 
 extern LCM_DRIVER r63419_fhd_truly_phantom_lcm_drv;
 extern LCM_DRIVER aeon_nt36672_fhd_dsi_vdo_x600_xinli_lcm_drv;
+extern LCM_DRIVER aeon_ssd2092_fhd_dsi_solomon_lcm_drv;
 
 #ifdef BUILD_LK
 extern void mdelay(unsigned long msec);

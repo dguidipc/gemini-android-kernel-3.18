@@ -92,7 +92,10 @@ static void disable_micbias(unsigned long a);
 /* Used to let accdet know if the pin has been fully plugged-in */
 #define EINT_PIN_PLUG_IN        (1)
 #define EINT_PIN_PLUG_OUT       (0)
+
 int cur_eint_state = EINT_PIN_PLUG_OUT;
+EXPORT_SYMBOL(cur_eint_state);
+
 static struct work_struct accdet_disable_work;
 static struct workqueue_struct *accdet_disable_workqueue;
 #else

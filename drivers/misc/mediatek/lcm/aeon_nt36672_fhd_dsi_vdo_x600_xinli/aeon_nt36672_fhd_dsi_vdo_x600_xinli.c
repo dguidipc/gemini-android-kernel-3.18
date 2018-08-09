@@ -39,6 +39,8 @@
 #endif
 
 extern int aeon_gpio_set(const char *name);
+extern void lp3101_poweron(void);
+
 static LCM_UTIL_FUNCS lcm_util;
 
 #define LCM_ID_NT36672 (0x8070)
@@ -63,6 +65,7 @@ static LCM_UTIL_FUNCS lcm_util;
 
 #define set_gpio_lcd_enp(cmd) \
 		lcm_util.set_gpio_lcd_enp_bias(cmd)
+#if 0		
 #ifndef BUILD_LK
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -195,7 +198,7 @@ MODULE_DESCRIPTION("MTK lp3101 I2C Driver");
 MODULE_LICENSE("GPL");
 #endif
 #endif
-
+#endif
 /* static unsigned char lcd_id_pins_value = 0xFF; */
 //static const unsigned char LCD_MODULE_ID = 0x01;
 #define LCM_DSI_CMD_MODE									0
@@ -791,41 +794,41 @@ static void lcm_resume_power(void)
 
 static void lcm_poweron(void)
 {
-	unsigned char cmd = 0x0;
-	unsigned char data = 0xFF;
-#ifndef CONFIG_FPGA_EARLY_PORTING
-	int ret = 0;
-#endif
+//	unsigned char cmd = 0x0;
+//	unsigned char data = 0xFF;
+//#ifndef CONFIG_FPGA_EARLY_PORTING
+//	int ret = 0;
+//#endif
 	printk("====wys===lcm_poweron=start====\n");
 
-	cmd = 0x00;
-	data = 0x0f;
+//	cmd = 0x00;
+//	data = 0x0f;
 	SET_RESET_PIN(0);
 	aeon_gpio_set("aeon_lcd_bias_enp1");
 	aeon_gpio_set("aeon_lcd_bias_enn1");
 
-#ifndef CONFIG_FPGA_EARLY_PORTING
+//#ifndef CONFIG_FPGA_EARLY_PORTING
 
-	//MDELAY(20);
+	MDELAY(20);
+	lp3101_poweron();
+//	ret=lp3101_write_bytes(cmd,data);
 
-	ret=lp3101_write_bytes(cmd,data);
 
+//	if (ret < 0)
+//		LCM_LOGI("NT36672----lp3101---cmd=%0x-- i2c write error-----\n",cmd);
+//	else
+//		LCM_LOGI("NT36672----lp3101---cmd=%0x-- i2c write success-----\n",cmd);
+//	cmd = 0x01;
+//	data = 0x0f;
 
-	if (ret < 0)
-		LCM_LOGI("NT36672----lp3101---cmd=%0x-- i2c write error-----\n",cmd);
-	else
-		LCM_LOGI("NT36672----lp3101---cmd=%0x-- i2c write success-----\n",cmd);
-	cmd = 0x01;
-	data = 0x0f;
+//	ret=lp3101_write_bytes(cmd,data);
 
-	ret=lp3101_write_bytes(cmd,data);
+//	if (ret < 0)
+//		LCM_LOGI("NT36672----lp3101----cmd=%0x--i2c write error----\n", cmd);
+//	else
+//		LCM_LOGI("NT36672----lp3101----cmd=%0x--i2c write success----\n", cmd);
 
-	if (ret < 0)
-		LCM_LOGI("NT36672----lp3101----cmd=%0x--i2c write error----\n", cmd);
-	else
-		LCM_LOGI("NT36672----lp3101----cmd=%0x--i2c write success----\n", cmd);
-
-#endif
+//#endif
 	SET_RESET_PIN(1);
 	MDELAY(10);
 	SET_RESET_PIN(0);
@@ -850,6 +853,7 @@ static void lcm_suspend(void)
 	
   aeon_gpio_set("aeon_lcd_bias_enn0");
   aeon_gpio_set("aeon_lcd_bias_enp0");
+	printk(" SSD2092 lcm_suspend end!\n");
 }
 
 static void lcm_resume(void)
@@ -862,7 +866,7 @@ static void lcm_resume(void)
 
 static unsigned int lcm_compare_id(void)
 {
-	
+#ifdef BUILD_LK
 	unsigned char buffer[2];
 	unsigned int array[16];
 	unsigned int id=0;
@@ -889,6 +893,9 @@ static unsigned int lcm_compare_id(void)
 		return 1;
 	else
 		return 0;
+#else
+	return 1;
+#endif
 }
 
 /* return TRUE: need recovery */

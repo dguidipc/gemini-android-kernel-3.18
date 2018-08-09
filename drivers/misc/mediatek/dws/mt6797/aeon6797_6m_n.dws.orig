@@ -3816,11 +3816,6 @@
                 <channel>I2C_CHANNEL_1</channel>
                 <address>0x25</address>
             </device27>
-            <device28>
-                <varName>SOLOMON_TOUCH</varName>
-                <channel>I2C_CHANNEL_4</channel>
-                <address>0x53</address>
-            </device28>
         </module>
         <module name="md1_eint">
             <count>4</count>
