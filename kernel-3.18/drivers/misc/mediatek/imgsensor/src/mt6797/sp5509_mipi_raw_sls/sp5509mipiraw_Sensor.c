@@ -105,7 +105,7 @@ static imgsensor_info_struct imgsensor_info = {
 		/*	 following for MIPIDataLowPwr2HighSpeedSettleDelayCount by different scenario	*/
 		.mipi_data_lp2hs_settle_dc = 14,
 		/*	 following for GetDefaultFramerateByScenario()	*/
-		.max_framerate = 150,	
+		.max_framerate = 300,	
 	},
 #endif
 	.normal_video = {
@@ -517,6 +517,7 @@ static void night_mode(kal_bool enable)
 }	/*	night_mode	*/
 static void sensor_init(void)
 {
+printk("sensor_init enter\n");
 write_cmos_sensor(0x0a00,0x0000);
 write_cmos_sensor(0x0e00,0x0102);
 write_cmos_sensor(0x0e02,0x0102);
@@ -676,16 +677,16 @@ write_cmos_sensor(0x0b0a,0x8252);
 write_cmos_sensor(0x0b0c,0xf814);
 write_cmos_sensor(0x0b0e,0xc618);
 write_cmos_sensor(0x0b10,0xa828);
-write_cmos_sensor(0x0b12,0x004c);
+	write_cmos_sensor(0x0b12, 0x002c);
 write_cmos_sensor(0x0b14,0x4068);
 write_cmos_sensor(0x0b16,0x0000);
 write_cmos_sensor(0x0f30,0x6e25);
 write_cmos_sensor(0x0f32,0x7067);
 write_cmos_sensor(0x0954,0x0009);
-write_cmos_sensor(0x0956,0x1100);
-write_cmos_sensor(0x0958,0xcc80);
-write_cmos_sensor(0x095a,0x0000);
-write_cmos_sensor(0x0c00,0x1110);
+	write_cmos_sensor(0x0956, 0x0000);
+	write_cmos_sensor(0x0958, 0xff80);
+	write_cmos_sensor(0x095a, 0x5140);
+write_cmos_sensor(0x0c00,0x1111);//1110 gh
 write_cmos_sensor(0x0c02,0x0011);
 write_cmos_sensor(0x0c04,0x0000);
 write_cmos_sensor(0x0c06,0x0200);
@@ -694,6 +695,10 @@ write_cmos_sensor(0x0c12,0x0040);
 write_cmos_sensor(0x0c14,0x0040);
 write_cmos_sensor(0x0c16,0x0040);
 write_cmos_sensor(0x0a10,0x4000);
+	write_cmos_sensor(0x0c08, 0x01c0);
+	write_cmos_sensor(0x0c0a, 0x01c0);
+	write_cmos_sensor(0x0c0c, 0x01c0);
+	write_cmos_sensor(0x0c0e, 0x01c0);
 write_cmos_sensor(0x3068,0xf800);
 write_cmos_sensor(0x306a,0xf876);
 write_cmos_sensor(0x006c,0x0000);
@@ -717,16 +722,17 @@ write_cmos_sensor(0x002c,0x07c7);
 write_cmos_sensor(0x002e,0x1111);
 write_cmos_sensor(0x0030,0x1111);
 write_cmos_sensor(0x0032,0x1111);
-write_cmos_sensor(0x0006,0x0823); //frame length lines min 0x07BC
+	write_cmos_sensor(0x0006, 0x07bc);
 write_cmos_sensor(0x0a22,0x0000);
 write_cmos_sensor(0x0a12,0x0a20);
 write_cmos_sensor(0x0a14,0x0798);
 write_cmos_sensor(0x003e,0x0000);
-write_cmos_sensor(0x0074,0x0821); //coarse integ time
-write_cmos_sensor(0x0070,0x0411); 
+	write_cmos_sensor(0x0074, 0x080e);
+	write_cmos_sensor(0x0070, 0x0407);
 write_cmos_sensor(0x0002,0x0000);
 write_cmos_sensor(0x0a02,0x0100);
 write_cmos_sensor(0x0a24,0x0100);
+	write_cmos_sensor(0x0046, 0x0000);
 write_cmos_sensor(0x0076,0x0000);
 write_cmos_sensor(0x0060,0x0000);
 write_cmos_sensor(0x0062,0x0530);
@@ -736,7 +742,7 @@ write_cmos_sensor(0x0068,0x0500);
 write_cmos_sensor(0x0122,0x0300);
 write_cmos_sensor(0x015a,0xff08);
 write_cmos_sensor(0x0804,0x0200);
-write_cmos_sensor(0x005c,0x0102);
+write_cmos_sensor(0x005c,0x0182);//102 gh
 write_cmos_sensor(0x0a1a,0x0800);
 
 }	/*	sensor_init  */
@@ -767,7 +773,7 @@ write_cmos_sensor(0x0f30, 0x6e25); //pll
 write_cmos_sensor(0x0f32, 0x7067); //pll
 write_cmos_sensor(0x004a, 0x0100);
 write_cmos_sensor(0x004c, 0x0000);
-write_cmos_sensor(0x004e, 0x0000); //per-frame control off, on 0x0100
+
 write_cmos_sensor(0x000c, 0x0022);
 write_cmos_sensor(0x0008, 0x0b00); //line length pck 2816
 write_cmos_sensor(0x005a, 0x0202);
@@ -885,7 +891,7 @@ write_cmos_sensor(0x0f30, 0x6e25); //pll
 write_cmos_sensor(0x0f32, 0x7067); //pll
 write_cmos_sensor(0x004a, 0x0100);
 write_cmos_sensor(0x004c, 0x0000);
-write_cmos_sensor(0x004e, 0x0000); //per-frame control off, on 0x0100
+
 write_cmos_sensor(0x000c, 0x0022);
 write_cmos_sensor(0x0008, 0x0b00); //line length pck 2816
 write_cmos_sensor(0x005a, 0x0202);
@@ -942,7 +948,7 @@ write_cmos_sensor(0x0f30, 0x6e25); //pll
 write_cmos_sensor(0x0f32, 0x7067); //pll
 write_cmos_sensor(0x004a, 0x0100);
 write_cmos_sensor(0x004c, 0x0000);
-write_cmos_sensor(0x004e, 0x0000); //per-frame control off, on 0x0100
+
 write_cmos_sensor(0x000c, 0x0022);
 write_cmos_sensor(0x0008, 0x0b00); //line length pck 2816
 write_cmos_sensor(0x005a, 0x0202);
@@ -1000,7 +1006,7 @@ write_cmos_sensor(0x0f30, 0x6e25); //pll
 write_cmos_sensor(0x0f32, 0x7067); //pll
 write_cmos_sensor(0x004a, 0x0100);
 write_cmos_sensor(0x004c, 0x0000);
-write_cmos_sensor(0x004e, 0x0000); //per-frame control off, on 0x0100
+
 write_cmos_sensor(0x000c, 0x0022);
 write_cmos_sensor(0x0008, 0x0b00); //line length pck 2816
 write_cmos_sensor(0x005a, 0x0202);
@@ -1067,7 +1073,6 @@ write_cmos_sensor(0x0f30, 0x6e25); //pll
 write_cmos_sensor(0x0f32, 0x7267); //pll                                      
 write_cmos_sensor(0x004a, 0x0100);                                            
 write_cmos_sensor(0x004c, 0x0000);                                            
-write_cmos_sensor(0x004e, 0x0000); //per-frame control off, on 0x0100         
 write_cmos_sensor(0x000c, 0x0022);                                            
 write_cmos_sensor(0x0008, 0x0b00); //line length pck 2816                     
 write_cmos_sensor(0x005a, 0x0208);                                            
@@ -1128,7 +1133,6 @@ write_cmos_sensor(0x0f30, 0x6e25); //pll
 write_cmos_sensor(0x0f32, 0x7167); //pll                                      
 write_cmos_sensor(0x004a, 0x0100);                                            
 write_cmos_sensor(0x004c, 0x0000);                                            
-write_cmos_sensor(0x004e, 0x0000); //per-frame control off, on 0x0100         
 write_cmos_sensor(0x000c, 0x0122);                                            
 write_cmos_sensor(0x0008, 0x0b00); //line length pck 2816                     
 write_cmos_sensor(0x005a, 0x0404);                                            
@@ -1148,7 +1152,7 @@ write_cmos_sensor(0x0a22, 0x0000);
 write_cmos_sensor(0x0a12, 0x0510); //x output size 2592                       
 write_cmos_sensor(0x0a14, 0x03cc); //y output size 1944                       
 write_cmos_sensor(0x003e, 0x0000);                                            
-write_cmos_sensor(0x0804, 0x0200);                                            
+	write_cmos_sensor(0x0804, 0x0208);
 write_cmos_sensor(0x0a04, 0x0168); //isp_en  //BPC disable       //0x016a  huazai2017.6.7                           
 write_cmos_sensor(0x090e, 0x0010); //mipi_vblank_delay                        
 write_cmos_sensor(0x090c, 0x09c0); //mipi_hblank_delay                        
@@ -1156,7 +1160,7 @@ write_cmos_sensor(0x0902, 0x4319); //mipi_tx_op_mode1, mipi_tx_op_mode2
 write_cmos_sensor(0x0914, 0xc106); //mipi_exit_seq, tlpx                      
 write_cmos_sensor(0x0916, 0x040e); //tclk_prepare, tclk_zero                  
 write_cmos_sensor(0x0918, 0x0304); //tclk_pre, ths_prepare                    
-write_cmos_sensor(0x091a, 0x0709); //ths_zero, ths_trail                      
+	write_cmos_sensor(0x091a, 0x0708);
 write_cmos_sensor(0x091c, 0x0e06); //tclk_post, tclk_trail                    
 write_cmos_sensor(0x091e, 0x0300); //mipi_exit, null                          
 write_cmos_sensor(0x0a00, 0x0100);

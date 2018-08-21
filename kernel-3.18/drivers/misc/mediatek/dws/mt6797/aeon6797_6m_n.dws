@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--dct_version="2.5" buid_sn="161025" dws_modification_time="12.19.2017.10:15:50"-->
+<!--dct_version="2.5" buid_sn="161025" dws_modification_time="05.05.2018.11:33:28"-->
 <dct_cfg>
     <general chip="MT6797">
         <proj>aeon6797_6m_n</proj>
@@ -3898,7 +3898,7 @@
 				NC NC NC NC NC NC NC NC NC</keyMatrix>
             <keyMatrix_ext></keyMatrix_ext>
             <downloadKey>NC VOLUMEDOWN POWER</downloadKey>
-            <modeKey>NC NC VOLUMEDOWN</modeKey>
+            <modeKey>NC NC NC</modeKey>
             <pwrKeyEint_gpioNum>0</pwrKeyEint_gpioNum>
             <pwrKeyUtility>POWER</pwrKeyUtility>
             <home_key>CALL</home_key>
