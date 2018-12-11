@@ -40,6 +40,9 @@ LCM_DRIVER *lcm_driver_list[] = {
 #if defined(AEON_NT36672_FHD_DSI_VDO_X600_XINLI)
 	&aeon_nt36672_fhd_dsi_vdo_x600_xinli_lcm_drv,
 #endif
+#if defined(AEON_SSD2092_FHD_DSI_SOLOMON)
+	&aeon_ssd2092_fhd_dsi_solomon_lcm_drv,
+#endif
 };
 
 unsigned char lcm_name_list[][128] = {

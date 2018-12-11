@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--dct_version="2.5" buid_sn="161025" dws_modification_time="05.05.2018.11:33:28"-->
+<!--dct_version="2.5" buid_sn="161025" dws_modification_time="07.31.2018.13:54:58"-->
 <dct_cfg>
     <general chip="MT6797">
         <proj>aeon6797_6m_n</proj>
@@ -3816,6 +3816,11 @@
                 <channel>I2C_CHANNEL_1</channel>
                 <address>0x25</address>
             </device27>
+            <device28>
+                <varName>SOLOMON_TOUCH</varName>
+                <channel>I2C_CHANNEL_4</channel>
+                <address>0x53</address>
+            </device28>
         </module>
         <module name="md1_eint">
             <count>4</count>

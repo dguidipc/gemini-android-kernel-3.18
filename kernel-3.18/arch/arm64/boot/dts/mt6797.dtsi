@@ -4290,6 +4290,7 @@
 #include "novatek-nt36xxx-i2c.dtsi"
 #include "sil9024a.dtsi"
 #include "rt9466.dtsi"
+#include "ssd2092_touch.dtsi"
 
 &hall {
 	pinctrl-names = "pin_default", "pin_cfg";

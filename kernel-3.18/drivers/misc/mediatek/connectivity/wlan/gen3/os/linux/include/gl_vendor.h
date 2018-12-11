@@ -727,6 +727,7 @@ int mtk_cfg80211_vendor_get_channel_list(struct wiphy *wiphy, struct wireless_de
 int mtk_cfg80211_vendor_set_country_code(struct wiphy *wiphy, struct wireless_dev *wdev,
 					 const void *data, int data_len);
 
+#if CFG_SUPPORT_GSCN
 int mtk_cfg80211_vendor_get_gscan_capabilities(struct wiphy *wiphy, struct wireless_dev *wdev,
 					       const void *data, int data_len);
 
@@ -753,6 +754,7 @@ int mtk_cfg80211_vendor_get_gscan_result(struct wiphy *wiphy, struct wireless_de
 
 int mtk_cfg80211_vendor_gscan_results(struct wiphy *wiphy, struct wireless_dev *wdev,
 				      const void *data, int data_len, BOOLEAN complete, BOOLEAN compValue);
+#endif
 
 int mtk_cfg80211_vendor_get_rtt_capabilities(struct wiphy *wiphy, struct wireless_dev *wdev,
 					     const void *data, int data_len);

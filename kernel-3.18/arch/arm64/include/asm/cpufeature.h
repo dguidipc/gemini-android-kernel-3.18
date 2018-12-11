@@ -24,10 +24,24 @@
 #define ARM64_WORKAROUND_CLEAN_CACHE		0
 #define ARM64_WORKAROUND_DEVICE_LOAD_ACQUIRE	1
 #define ARM64_WORKAROUND_845719			2
+#define ARM64_HARDEN_BRANCH_PREDICTOR		24
 
-#define ARM64_NCAPS				3
+#define ARM64_NCAPS				25
 
 #ifndef __ASSEMBLY__
+
+struct arm64_cpu_capabilities {
+	const char *desc;
+	u16 capability;
+	bool (*matches)(const struct arm64_cpu_capabilities *);
+	void (*enable)(void *);		/* Called on all active CPUs */
+	union {
+		struct {	/* To be used for erratum handling only */
+			u32 midr_model;
+			u32 midr_range_min, midr_range_max;
+		};
+	};
+};
 
 extern DECLARE_BITMAP(cpu_hwcaps, ARM64_NCAPS);
 
@@ -55,7 +69,24 @@ static inline void cpus_set_cap(unsigned int num)
 		__set_bit(num, cpu_hwcaps);
 }
 
+#define ID_AA64PFR0_CSV2_SHIFT		56
+
+static inline unsigned int __attribute_const__
+cpuid_feature_extract_unsigned_field_width(u64 features, int field, int width)
+{
+	return (u64)(features << (64 - width - field)) >> (64 - width);
+}
+
+static inline unsigned int __attribute_const__
+cpuid_feature_extract_unsigned_field(u64 features, int field)
+{
+	return cpuid_feature_extract_unsigned_field_width(features, field, 4);
+}
+
+void check_cpu_capabilities(const struct arm64_cpu_capabilities *caps,
+			    const char *info);
 void check_local_cpu_errata(void);
+void check_local_cpu_features(void);
 
 #endif /* __ASSEMBLY__ */
 

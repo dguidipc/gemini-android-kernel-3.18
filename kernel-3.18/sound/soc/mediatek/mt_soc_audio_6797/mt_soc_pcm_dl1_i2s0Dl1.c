@@ -70,6 +70,8 @@ static unsigned int mPlaybackDramState;
  *    function implementation
  */
 
+extern int cur_eint_state;
+
 static int mtk_I2S0dl1_probe(struct platform_device *pdev);
 static int mtk_pcm_I2S0dl1_close(struct snd_pcm_substream *substream);
 static int mtk_asoc_pcm_I2S0dl1_new(struct snd_soc_pcm_runtime *rtd);
@@ -366,10 +368,17 @@ static int mtk_pcm_I2S0dl1_close(struct snd_pcm_substream *substream)
 			      Soc_Aud_InterConnectionOutput_O00);
 		SetConnection(Soc_Aud_InterCon_DisConnect, Soc_Aud_InterConnectionInput_I06,
 			      Soc_Aud_InterConnectionOutput_O01);
-		SetConnection(Soc_Aud_InterCon_DisConnect, Soc_Aud_InterConnectionInput_I05,
+		if(cur_eint_state == 1){
+			SetConnection(Soc_Aud_InterCon_DisConnect, Soc_Aud_InterConnectionInput_I05,
 			      Soc_Aud_InterConnectionOutput_O03);
-		SetConnection(Soc_Aud_InterCon_DisConnect, Soc_Aud_InterConnectionInput_I06,
+			SetConnection(Soc_Aud_InterCon_DisConnect, Soc_Aud_InterConnectionInput_I06,
 			      Soc_Aud_InterConnectionOutput_O04);
+		}else{
+			SetConnection(Soc_Aud_InterCon_DisConnect, Soc_Aud_InterConnectionInput_I05,
+			      Soc_Aud_InterConnectionOutput_O04);
+			SetConnection(Soc_Aud_InterCon_DisConnect, Soc_Aud_InterConnectionInput_I06,
+			      Soc_Aud_InterConnectionOutput_O03);
+		}
 		SetConnection(Soc_Aud_InterCon_DisConnect, Soc_Aud_InterConnectionInput_I05,
 			      Soc_Aud_InterConnectionOutput_O28);
 		SetConnection(Soc_Aud_InterCon_DisConnect, Soc_Aud_InterConnectionInput_I06,
@@ -411,12 +420,19 @@ static int mtk_pcm_I2S0dl1_prepare(struct snd_pcm_substream *substream)
 	struct snd_pcm_runtime *runtime = substream->runtime;
 	uint32 u32AudioI2S = 0;
 	bool mI2SWLen;
-
-	pr_warn("%s, mPrepareDone = %d format = %d SNDRV_PCM_FORMAT_S32_LE = %d SNDRV_PCM_FORMAT_U32_LE = %d\n",
+	if(cur_eint_state == 1){
+		pr_warn("%s, mPrepareDone = %d format = %d SNDRV_PCM_FORMAT_S32_LE = %d SNDRV_PCM_FORMAT_U32_LE = %d\n",
 			       __func__,
 			       mPrepareDone,
 			       runtime->format,
 			       SNDRV_PCM_FORMAT_S32_LE, SNDRV_PCM_FORMAT_U32_LE);
+	}else{
+		pr_warn("%s, change for L/R revert mPrepareDone = %d format = %d SNDRV_PCM_FORMAT_S32_LE = %d SNDRV_PCM_FORMAT_U32_LE = %d\n",
+			       __func__,
+			       mPrepareDone,
+			       runtime->format,
+			       SNDRV_PCM_FORMAT_S32_LE, SNDRV_PCM_FORMAT_U32_LE);
+	}
 
 	if (mPrepareDone == false) {
 		SetMemifSubStream(Soc_Aud_Digital_Block_MEM_DL1, substream);
@@ -459,10 +475,17 @@ static int mtk_pcm_I2S0dl1_prepare(struct snd_pcm_substream *substream)
 			      Soc_Aud_InterConnectionOutput_O00);
 		SetConnection(Soc_Aud_InterCon_Connection, Soc_Aud_InterConnectionInput_I06,
 			      Soc_Aud_InterConnectionOutput_O01);
-		SetConnection(Soc_Aud_InterCon_Connection, Soc_Aud_InterConnectionInput_I05,
+		if(cur_eint_state == 1){
+			SetConnection(Soc_Aud_InterCon_Connection, Soc_Aud_InterConnectionInput_I05,
 			      Soc_Aud_InterConnectionOutput_O03);
-		SetConnection(Soc_Aud_InterCon_Connection, Soc_Aud_InterConnectionInput_I06,
+			SetConnection(Soc_Aud_InterCon_Connection, Soc_Aud_InterConnectionInput_I06,
 			      Soc_Aud_InterConnectionOutput_O04);
+		}else{
+			SetConnection(Soc_Aud_InterCon_Connection, Soc_Aud_InterConnectionInput_I05,
+			      Soc_Aud_InterConnectionOutput_O04);
+			SetConnection(Soc_Aud_InterCon_Connection, Soc_Aud_InterConnectionInput_I06,
+			      Soc_Aud_InterConnectionOutput_O03);
+		}
 		SetConnection(Soc_Aud_InterCon_Connection, Soc_Aud_InterConnectionInput_I05,
 			      Soc_Aud_InterConnectionOutput_O28);
 		SetConnection(Soc_Aud_InterCon_Connection, Soc_Aud_InterConnectionInput_I06,

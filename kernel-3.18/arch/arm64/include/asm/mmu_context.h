@@ -84,26 +84,29 @@ static inline void check_and_switch_context(struct mm_struct *mm,
 	 */
 	cpu_set_reserved_ttbr0();
 
-	if (!((mm->context.id ^ cpu_last_asid) >> MAX_ASID_BITS))
+	if (!((mm->context.id ^ cpu_last_asid) >> MAX_ASID_BITS)) {
 		/*
 		 * The ASID is from the current generation, just switch to the
 		 * new pgd. This condition is only true for calls from
 		 * context_switch() and interrupts are already disabled.
 		 */
+		arm64_apply_bp_hardening();
 		cpu_switch_mm(mm->pgd, mm);
-	else if (irqs_disabled())
+	} else if (irqs_disabled())
 		/*
 		 * Defer the new ASID allocation until after the context
 		 * switch critical region since __new_context() cannot be
 		 * called with interrupts disabled.
 		 */
 		set_ti_thread_flag(task_thread_info(tsk), TIF_SWITCH_MM);
-	else
+	else {
 		/*
 		 * That is a direct call to switch_mm() or activate_mm() with
 		 * interrupts enabled and a new context.
 		 */
+		arm64_apply_bp_hardening();
 		switch_new_context(mm);
+	}
 }
 
 #define init_new_context(tsk,mm)	(__init_new_context(tsk,mm),0)

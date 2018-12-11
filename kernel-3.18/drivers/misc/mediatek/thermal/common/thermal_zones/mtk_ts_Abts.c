@@ -35,6 +35,7 @@
 
 static kuid_t uid = KUIDT_INIT(0);
 static kgid_t gid = KGIDT_INIT(1000);
+static DEFINE_SEMAPHORE(sem_mutex);
 
 static unsigned int interval;	/* seconds, 0 : no auto polling */
 static int trip_temp[10] = { 200000, 110000, 100000, 90000, 80000, 70000, 65000, 60000, 55000, 50000 };
@@ -289,7 +290,7 @@ static ssize_t mtkts_Abts_write(struct file *file, const char __user *buffer, si
 
 	if (sscanf
 	    (ptr_mtktsAbts_data->desc,
-	     "%d %d %d %s %d %d %s %d %d %s %d %d %s %d %d %s %d %d %s %d %d %s %d %d %s %d %d %s %d %d %s %d",
+	     "%d %d %d %19s %d %d %19s %d %d %19s %d %d %19s %d %d %19s %d %d %19s %d %d %19s %d %d %19s %d %d %19s %d %d %19s %d",
 		&num_trip,
 		&ptr_mtktsAbts_data->trip[0], &ptr_mtktsAbts_data->t_type[0], ptr_mtktsAbts_data->bind0,
 		&ptr_mtktsAbts_data->trip[1], &ptr_mtktsAbts_data->t_type[1], ptr_mtktsAbts_data->bind1,
@@ -303,6 +304,7 @@ static ssize_t mtkts_Abts_write(struct file *file, const char __user *buffer, si
 		&ptr_mtktsAbts_data->trip[9], &ptr_mtktsAbts_data->t_type[9], ptr_mtktsAbts_data->bind9,
 		&ptr_mtktsAbts_data->time_msec) == 32) {
 		mtkts_Abts_dprintk("[mtkts_Abts_write] mtkts_Abts_unregister_thermal\n");
+		down(&sem_mutex);
 		mtkts_Abts_unregister_thermal();
 
 		if (num_trip < 0 || num_trip > 10) {
@@ -310,6 +312,7 @@ static ssize_t mtkts_Abts_write(struct file *file, const char __user *buffer, si
 					"Bad argument");
 			mtkts_Abts_dprintk("[mtkts_Abts_write] bad argument\n");
 			kfree(ptr_mtktsAbts_data);
+			up(&sem_mutex);
 			return -EINVAL;
 		}
 
@@ -359,6 +362,7 @@ static ssize_t mtkts_Abts_write(struct file *file, const char __user *buffer, si
 		mtkts_Abts_dprintk("[mtkts_Abts_write] mtkts_Abts_register_thermal\n");
 
 		mtkts_Abts_register_thermal();
+		up(&sem_mutex);
 		kfree(ptr_mtktsAbts_data);
 		/* AP_write_flag=1; */
 		return count;
