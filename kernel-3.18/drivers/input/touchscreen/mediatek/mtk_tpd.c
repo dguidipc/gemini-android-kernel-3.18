@@ -34,7 +34,7 @@
 #if defined(CONFIG_MTK_S3320) || defined(CONFIG_MTK_S3320_50) \
 	|| defined(CONFIG_MTK_S3320_47) || defined(CONFIG_MTK_MIT200) \
 	|| defined(CONFIG_TOUCHSCREEN_SYNAPTICS_S3528) || defined(CONFIG_MTK_S7020) \
-	|| defined(CONFIG_TOUCHSCREEN_MTK_SYNAPTICS_3320_50)
+	|| defined(CONFIG_TOUCHSCREEN_MTK_SYNAPTICS_3320_50) || defined(CONFIG_TOUCHSCREEN_MTK_SSL_SSD20XX)
 #include <linux/input/mt.h>
 #endif /* CONFIG_MTK_S3320 */
 
@@ -630,7 +630,7 @@ static int tpd_probe(struct platform_device *pdev)
 #if !defined(CONFIG_MTK_S3320) && !defined(CONFIG_MTK_S3320_47)\
 	&& !defined(CONFIG_MTK_S3320_50) && !defined(CONFIG_MTK_MIT200) \
 	&& !defined(CONFIG_TOUCHSCREEN_SYNAPTICS_S3528) && !defined(CONFIG_MTK_S7020) \
-	&& !defined(CONFIG_TOUCHSCREEN_MTK_SYNAPTICS_3320_50)
+	&& !defined(CONFIG_TOUCHSCREEN_MTK_SYNAPTICS_3320_50) && !defined(CONFIG_TOUCHSCREEN_MTK_SSL_SSD20XX)
 	set_bit(BTN_TOUCH, tpd->dev->keybit);
 #endif /* CONFIG_MTK_S3320 */
 	set_bit(INPUT_PROP_DIRECT, tpd->dev->propbit);
@@ -681,7 +681,7 @@ static int tpd_probe(struct platform_device *pdev)
 #if defined(CONFIG_MTK_S3320) || defined(CONFIG_MTK_S3320_47) \
 	|| defined(CONFIG_MTK_S3320_50) || defined(CONFIG_MTK_MIT200) \
 	|| defined(CONFIG_TOUCHSCREEN_SYNAPTICS_S3528) || defined(CONFIG_MTK_S7020) \
-	|| defined(CONFIG_TOUCHSCREEN_MTK_SYNAPTICS_3320_50)
+	|| defined(CONFIG_TOUCHSCREEN_MTK_SYNAPTICS_3320_50) || defined(CONFIG_TOUCHSCREEN_MTK_SSL_SSD20XX)
 		input_set_abs_params(tpd->dev, ABS_MT_PRESSURE, 0, 255, 0, 0);
 		input_set_abs_params(tpd->dev, ABS_MT_WIDTH_MAJOR, 0, 15, 0, 0);
 		input_set_abs_params(tpd->dev, ABS_MT_WIDTH_MINOR, 0, 15, 0, 0);

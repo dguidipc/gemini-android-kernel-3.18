@@ -221,4 +221,13 @@ config TOUCHSCREEN_LGE_FT8707
 	  connected to your system.
 	  To compile this dirver as a module, choose M here: the
 	  module will be called.
+	
+config TOUCHSCREEN_MTK_SSL_SSD20XX
+	tristate "MediaTek Touch Panel Driver CONFIG_TOUCHSCREEN_MTK_SSL_SSD2098"
+	default n
+	help
+	  Say Y here if you have MediaTek touch panel.
+	  If unsure, say N.
+	  To compile this dirver as a module, choose M here: the
+	  module will be called.
 endif

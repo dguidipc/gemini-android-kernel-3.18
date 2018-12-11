@@ -73,6 +73,8 @@
  *=============================================================*/
 static kuid_t uid = KUIDT_INIT(0);
 static kgid_t gid = KGIDT_INIT(1000);
+static DEFINE_SEMAPHORE(sem_mutex);
+static int isTimerCancelled;
 
 #if !defined(CONFIG_MTK_CLKMGR)
 struct clk *therm_main;		/* main clock for Thermal */
@@ -870,7 +872,7 @@ static ssize_t tscpu_write_GPIO_out(struct file *file, const char __user *buffer
 
 	desc[len] = '\0';
 
-	if (sscanf(desc, "%s %d %s %d ", TEMP, &valTEMP, ENABLE, &valENABLE) == 4) {
+	if (sscanf(desc, "%9s %d %9s %d ", TEMP, &valTEMP, ENABLE, &valENABLE) == 4) {
 		/* tscpu_printk("XXXXXXXXX\n"); */
 
 		if (!strcmp(TEMP, "TEMP")) {
@@ -1226,6 +1228,7 @@ static ssize_t tscpu_write(struct file *file, const char __user *buffer, size_t 
 		apthermolmt_set_general_cpu_power_limit(900);
 #endif
 
+		down(&sem_mutex);
 		tscpu_unregister_thermal();
 
 		if (num_trip < 0 || num_trip > 10) {
@@ -1233,6 +1236,7 @@ static ssize_t tscpu_write(struct file *file, const char __user *buffer, size_t 
 					"Bad argument");
 			tscpu_dprintk("tscpu_write bad argument\n");
 			kfree(ptr_mtktscpu_data);
+			up(&sem_mutex);
 			return -EINVAL;
 		}
 
@@ -1358,6 +1362,7 @@ static ssize_t tscpu_write(struct file *file, const char __user *buffer, size_t 
 		 */
 		tscpu_dprintk("tscpu_write tscpu_register_thermal\n");
 		tscpu_register_thermal();
+		up(&sem_mutex);
 
 #if defined(CONFIG_ARCH_MT6797)
 		apthermolmt_set_general_cpu_power_limit(0);
@@ -2274,35 +2279,65 @@ int is_worktimer_en = 1;
 void tscpu_workqueue_cancel_timer(void)
 {
 #ifdef FAST_RESPONSE_ATM
+	if (down_trylock(&sem_mutex))
+		return;
+
 	if (is_worktimer_en && thz_dev) {
 		cancel_delayed_work(&(thz_dev->poll_queue));
-
+		isTimerCancelled = 1;
 		tscpu_dprintk("[tTimer] workqueue stopping\n");
 		spin_lock(&timer_lock);
 		is_worktimer_en = 0;
 		spin_unlock(&timer_lock);
 	}
+
+	up(&sem_mutex);
 #else
-	if (thz_dev)
+	if (down_trylock(&sem_mutex))
+		return;
+
+	if (thz_dev) {
 		cancel_delayed_work(&(thz_dev->poll_queue));
+		isTimerCancelled = 1;
+	}
+
+	up(&sem_mutex);
 #endif
 }
 
 void tscpu_workqueue_start_timer(void)
 {
 #ifdef FAST_RESPONSE_ATM
+	if (!isTimerCancelled)
+		return;
+
+	if (down_trylock(&sem_mutex))
+		return;
+
 	if (!is_worktimer_en && thz_dev != NULL && interval != 0) {
 		mod_delayed_work(system_freezable_wq, &(thz_dev->poll_queue), 0);
-
+		isTimerCancelled = 0;
 		tscpu_dprintk("[tTimer] workqueue starting\n");
 		spin_lock(&timer_lock);
 		is_worktimer_en = 1;
 		spin_unlock(&timer_lock);
 	}
+
+	up(&sem_mutex);
 #else
+	if (!isTimerCancelled)
+		return;
+
+	if (down_trylock(&sem_mutex))
+		return;
+
 	/* resume thermal framework polling when leaving deep idle */
-	if (thz_dev != NULL && interval != 0)
+	if (thz_dev != NULL && interval != 0) {
 		mod_delayed_work(system_freezable_wq, &(thz_dev->poll_queue), round_jiffies(msecs_to_jiffies(1000)));
+		isTimerCancelled = 0;
+	}
+
+	up(&sem_mutex);
 #endif
 
 }
